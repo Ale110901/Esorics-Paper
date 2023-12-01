@@ -1,0 +1,330 @@
+\documentclass[runningheads]{llncs}
+
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following line
+% to display URLs in blue roman font according to Springer's eBook style:
+% \renewcommand\UrlFont{\color{blue}\rmfamily}
+
+\begin{document}
+
+\title{Detection of DDoS Attacks with Gaussian Mixture Model}
+
+\author{Alessandro Cecchetto\inst{1} \and
+Giusy Conte\inst{1} \and
+Christian Napoli\inst{1,2,3}\orcidID{0000-0002-3336-5853}
+\thanks{This work has been developed at \emph{is.Lab()} Intelligent Systems Laboratory at the Department of Computer, 
+Control, and Management Engineering, Sapienza University of Rome (https://islab.diag.uniroma1.it). This paper has been
+partially supported by the Age-It: Ageing Well in an ageing society project, task 9.4.1 work package 4 spoke 9, 
+within topic 8 extended partnership 8, under the National Recovery and Resilience Plan (PNRR), Mission 4 Component
+2 Investment 1.3 - Call for tender No. 1557  of 11/10/2022 of Italian Ministry of University and Research funded
+by the European Union - NextGenerationEU, CUP B53C22004090006.}
+}
+
+\authorrunning{A. Cecchetto, G. Conte and C. Napoli}
+
+\institute
+{Department of Computer, Automation and Management Engineering, Sapienza University of Rome, Via Ariosto 25 Roma 00185 RM, Italy\\
+\and
+ Institute for Systems Analysis and Computer Science, Italian National Research Council, Via dei Taurini 19 Roma, Italy\\
+\and
+Department of Computational Intelligence, Czestochowa University of Technology, ul. J.H. Dąbrowskiego 69, 42-201 Czestochowa, Poland.\\
+\email{cnapoli@diag.uniroma1.it}
+}
+
+\maketitle
+
+\begin{abstract}
+    A distributed denial of service (DDoS) is an attack to stop the server machine partially/completely with mainly a request flood using internet or intranet. The
+    main aim of the DDoS attack is to collapse the network or server with abnormal traffic to make the service unavailable for the legitimate users. This problem is particularly profound, 
+    with the development of emerging technologies, such as cloud computing, Internet of things, artificial intelligence techniques, attackers can launch a huge volume of DDoS attacks 
+    with a lower cost, and it is much harder to detect and prevent DDoS attacks, because DDoS traffic is similar to normal traffic.
+    In this paper we implement a novel technique through using a Gaussian Mixture Model (GMM), which is normally used in other scientific or engineering
+    areas and in case of unsupervised learning.\\
+    Using a real traffic dataset, the CIC-DDoS2019 for training, testing, and evaluation, experiment results show that the proposed GMM can achieve recall, precision, and accuracy up to 99\%.
+    Experiments reveal that the GMM can be a promising solution to the detection of unknown DDoS attacks.
+
+\keywords{Destributed Denial of Service (DDoS)  \and Gaussian Mixture Model (GMM) \and Machine Learning \and Detection}
+
+\end{abstract}
+
+%
+
+\section{Introduction}
+By flooding malicious traffic, DoS (Denial of Service) attacks deplete the network
+bandwidth and computing resources of a targeted system, preventing the target system
+from offering regular services to legitimate users. DDoS (Distributed Denial of Service)
+goes even further on a much larger scale. DDoS attacks take over the control of a large
+number of comprised systems, called a botnet, and launch coordinated attacks on the victim
+system, as illustrated in Figure~\ref{fig1}, from this kind of attack behavior, DDoS attacks
+can be devided in several branches as reported in~\cite{ref_paper1}. 
+Along with the emergence and advancement of disruptive
+Internet technologies, DDoS attacks are evolving and proliferating in scale, frequency, and
+sophistication. Organizations face potential threats to their network environment that may
+cause severe impacts to their operations, such as business downtime, data breaches, or
+even ransom demands from hackers~\cite{ref_url1}.\\
+The detection of DDoS attacks is essential before any mitigation approaches can be taken. 
+In the early era, the alarm of DDoS attacks was triggered by rules programmed by traffic engineers
+In this paper, we propose a novel ML (Machine Learning) method based on GMM, for detecting DDoS
+malicious packets.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth, height=0.6\textwidth]{Figures/botnet_attack.eps}
+    \caption{DDoS attack with a botnet.}
+    \label{fig1}
+\end{figure}
+
+\clearpage
+
+\section{Related Works} %%% FARE %%%
+Various ML technologies have been employed, mainly as classifiers, in the detection
+of DDoS attacks. These include Support Vector Machines (SVM), k-Nearest Neighbors
+(KNN), the Naïve Bayes Classifier, Random Forest (RF), to name a
+few. With SVM, based on labeled training data, a hyperplane is constructed in the transform
+domain to classify unseen data.\\
+Muhammad Aamir et al. \cite{ref_paper3} implemented feature selection method based on clustering approach. Algorithm was compared 
+based on five different ML algorithms. Random forest (RF) and support vector machine (SVM) 
+were used for training purpose. RF achieved highest accuracy of around 96\%.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proposed Methodology}
+In the current cybersecurity scenario, the application of artificial intelligence and, more specifically, machine learning (ML) offers new and promising perspectives. Training predictive models to recognize anomalous patterns in network traffic provides a more agile and proactive means of detecting attacks. The Gaussian Mixture Model (GMM) is one such model, used for its ability to model complex distributions of data, such as those that characterize network traffic. The proposed work consists of two main phases: the data phase and model phase.\\During data phase, the following points are developed:
+\begin{itemize}
+    \item Feature pre-processing
+    \item Feature selection
+    \item Dimensionality reduction
+\end{itemize}
+During model phase, the following points are developed:
+\begin{itemize}
+    \item Model training
+    \item Performance evaluation
+    \item Cross-Validation
+\end{itemize}
+
+\subsection{Data}
+This part of the project is related to data manipulation and preparation.
+
+\subsubsection{Dataset}
+The proposed model is trained and validated on the dataset released by the Canadian Institute for Cybersecurity (CIC), namely
+CIC-DDoS2019 \cite{dataset}. The dataset comprise two types of attacks, namely reflection and exploitation.
+Both attacks conceal the attacker\textquotesingle s identity thanks to the IP spoofing technique \cite{ref_paper4} 
+in which packets are sent to reflector servers by attackers with the source IP address set to the target victim\textquotesingle s.\\
+The dataset contains benign and the most up-to-date common DDoS attacks, this two classes are divided as reported in
+Figure \ref{fig2}, with a total amount of data of 431,371 records described by 88 features.\\
+A slight imbalance is highlighted in the composition of the dataset, where the connections associated with the attacks represent approximately 77\% of the total dataset, this slight lack of data for the benign connections would have been possible to fix through oversampling algorithms, creating artificial data based on characteristics of the original ones, the choice in this project was not to make changes in this sense, as the imbalance present between the two classes was not too accentuated, equally allowing correct training of the model, the model performance evaluation is validated by applying the cross-validation step.\\
+The following types of attacks are present: UDP, MSSQL, Portmap, Syn, NetBIOS, UDPLag, LDAP,
+ DrDoS\_DNS, UDP-lag, WebDDoS, TFTP, DrDoS\_UDP, DrDoS\_SNMP,
+ DrDoS\_NetBIOS, DrDoS\_LDAP, DrDoS\_MSSQL, DrDoS\_NTP.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth, height=0.4\textwidth]{Figures/dataset_subdivision.eps}
+    \caption{Subdivision of the dataset.}
+    \label{fig2}
+\end{figure}
+
+\subsubsection{Data manipulation}
+The efficiency of classification techniques can be improved through adequate data manipulation which concerns different types of actions. Additionally, models trained on manually
+prepared data exhibited better performance compared to those trained on non-prepared data according to \cite{ref_paper5}.
+
+\paragraph{Feature Scaling}
+Feature scaling is a vital step in pre-processing data before building a model using machine learning  \cite{ref_paper6}. The datasets used for model training in machine learning often contain unpredictable values that may have varying scales. This can result in inequalities in comparing these values. Feature scaling techniques can address these challenges by adjusting the values and promoting easy and fair comparisons among values.\\
+The ML algorithm observes only numbers, and if there is a significant difference in range, it assumes that numbers in the upper ranges are superior such that features with larger numerical values have a greater effect on the distance between data and dominate other features when calculating distances. As a result, these more significant numbers play a more critical role during model training.\\
+Feature scaling is required to ensure that all features are equal in relevance, regardless of how important they may appear at first. Feature scaling is one of the popular steps used in ML to normalize the range of independent variables or features of data.\\
+Feature scaling technique exists in two forms; normalization and standardization \cite{ref_paper7}. The scaling technique used in this work is the Normalization, also known as Min-Max scaling, is a technique in which values are shifted and rescaled to a range between 0 and 1 without distorting differences in the ranges of values or losing information, for each feature, it follows the formula:
+\begin{equation}
+\frac{x_i - min(x)}{max(x) - min(x)}
+\end{equation}
+\\
+\paragraph{Encoding}
+Many statistical learning algorithms require as input a numerical feature matrix, as the case of GMM. When categorical variables are present in the data, feature engineering is needed to encode the different categories into a suitable feature vector.\\
+Feature encoding is the process of transforming textual data into numerical values so they may be applied to ML algorithms, resulting in improved model accuracy. Researchers have used many approaches to convert textual data into numerical values such as, “Label Encoding”, “One Hot Encoding” and “Binary Encoding” \cite{ref_paper8}, while categorical variables with only a small number of possible levels can often be efficiently dealt with using standard techniques such as one-hot encoding, this approach becomes inefficient as the number of levels increases, in such work this process is applied to the target feature of the dataset in which there are two different levels, \textit{Attack} and \textit{Benign}, even if the number of levels is not high, it was decided to not use the One-Hot encoding technique because it goes to encrease the number of the feature by 2, instead of One-Hot encoding technique it was used the Label encoding, which simply converts each value in a textual column into a number. Label encoding has the advantage that it is straightforward, yet it has the disadvantage that the numeric values can be “misinterpreted” by the machine learning algorithms since it uses number sequencing. The problem using the number is that they introduce relation/comparison between them. Apparently, there is no relation between Attack and Benign, but when looking at the number, 'Benign' which is encoded using 1 has higher precedence over ‘Attack’ which is encoded using 0, this kind of problem in this work does not occur.
+
+\subsubsection{Feature selection}
+Many ML models experience difficulty working with a high presence of features in input, generally, features can be categorized as: relevant, irrelevant, or redundant, the last two categories only increase the size of the input space \cite{ref_paper9} resulting in difficulty to process data further thus not contributing to the learning process. To generate the best performing model, feature selection plays a major role, which process a subset from available features data are selected for the process of learning algorithm. The best subset is the one with least number of dimensions that most contribute to learning accuracy, since an irrelevant feature does not affect describing the target concept in any way, a redundant feature does not add anything new to describing the target concept. Redundant features might possibly add more noise than useful information in describing the concept of interest. The main benefits of feature selection are follows: (i) reducing the measurement cost and storage requirements, (ii) coping with the degradation of the classification performance due to the finiteness of training sample sets, (iii) reducing training and utilization time, (iv) facilitating data visualization and data understanding, (V) reducing the risk of \textit{overfitting}.\\
+This process can be carried out into three ways \cite{paper_feature_selection}: filter, wrapper, and embedded.\\The feature selection process of the proposed work uses a filter approach based on the Random Forest Classifier (RFC) as in according with \cite{paper_rfc}, since it shows the most suitable performance among other filtering approaches, before the application of the model, the dataset is divided into train and test sets in the ratio of 80:20, since feature selection using only the training data (train set) rather than the entire dataset. This is particularly important to avoid so-called "data leakage".
+The main reason behind this choice is that, when selecting features, you want the selection to be based only on the information available during the model training phase. If you also use data from the test set during the feature selection phase, you may run the risk of using future information to guide feature selection, introducing a bias into the results.\\
+The RFC split the predictor space, i.e., the target variable into different sub groups which are relatively more homogenous from the perspective of the target variable. It creates the small subsets of datasets (bootstrap) from the overall dataset, along with numerous decision trees based on each sample. The first phase begins with learning data, after selecting one dimension between all, is defined a threshold values arbitrarily within the min–max range, this is used to divide the data and calculate the impurity based on the data being distributed. There are several ways to calculate the impurity, in this work the information is used.\\
+Information gain is a criterion for assessing the quality of a split, it calculates the amount of entropy (uncertainty) that is reduced as a result of dividing the data by a specific property. The entropy of a subset S is determined as follows:
+\begin{equation}
+Entropy(S) = \sum_{c=1}^{C} (p_i \cdot log_2(p_i))
+\end{equation}
+
+Where C represents the different classes of S, p is the likelihood of each class of S.\\
+The difference between the entropy of the parent set S and the weighted average entropy of its child subsets following the split is used to calculate the information gain for a particular attribute.
+
+Entropy(S) - weighted average of kid entropies equals information gain.
+
+The optimal property for data splitting is chosen to have the most information gain.
+
+
+Here, represents the i-th variant among the types of M variants, and is the
+probability at node T. The entropy has the lowest level of impurity when it has a value of zero,
+and the impurity has a minimum value when the probability has a value of one. The value of
+the gain is computed as shown in (6).
+A larger gain value indicates better classification. Next, the threshold value is stored, and
+the dimension at the root node is selected. The obtained gain value is divided at each node.
+Node splitting is repeated in the tree until the depth of the tree is maximized. In the resultant
+tree, the final node is called the leaf node. The number of trees is determined by the user. The
+dimensions and threshold are established at random; therefore, there is a small chance that the
+new tree could be in the same form as the existing tree. Inputs of small amounts of data will
+eventually reach the leaf node of each tree, and the probability value of the leaf node becomes
+the probability value of the tree. To obtain the learning process results, the RFC creates several
+trees, as previously mentioned, and aggregates their probabilities. This is a key idea of the
+RFC, and is called bagging (bootstrap aggregating). As previously explained, the RFC
+determines the overall classification accuracy after generating a large number of
+decision-making models. Because it has the ensemble step, the RFC can avoid over-fitting [9].
+On the other hand, the RFC has the disadvantage that a selected feature group can affect its
+classification accuracy
+ 
+
+\section{Model}
+\subsubsection{GMM}
+A GMM assumes all the data points are generated from a mixture of a finite number of Gaussian 
+distributions with certain parameters. GMM learns the representation of a multimodal data 
+distribution as a combination of unimodal distributions. GMM assumes the data in a specific 
+cluster are generated by a specific Gaussian distribution/component. GMM fits K Gaussian components 
+to the dataset by parameterizing the weight, mean, and covariance of each cluster, where i is the 
+cluster number. If there are K clusters in the dataset, Gaussian mixture model fits the dataset by 
+optimizing the following sum of Gaussian distributions/components:
+
+\subsubsection{Sample Heading (Third Level)} Only two levels of
+headings should be numbered. Lower level headings remain unnumbered;
+they are formatted as run-in headings.
+
+\paragraph{Sample Heading (Fourth Level)}
+The contribution should contain no more than four levels of
+headings. Table~\ref{tab1} gives a summary of all heading levels.
+
+\begin{table}
+\caption{Table captions should be placed above the
+tables.}\label{tab1}
+\begin{tabular}{|l|l|l|}
+\hline
+Heading level &  Example & Font size and style\\
+\hline
+Title (centered) &  {\Large\bfseries Lecture Notes} & 14 point, bold\\
+1st-level heading &  {\large\bfseries 1 Introduction} & 12 point, bold\\
+2nd-level heading & {\bfseries 2.1 Printing Area} & 10 point, bold\\
+3rd-level heading & {\bfseries Run-in Heading in Bold.} Text follows & 10 point, bold\\
+4th-level heading & {\itshape Lowest Level Heading.} Text follows & 10 point, italic\\
+\hline
+\end{tabular}
+\end{table}
+
+
+\noindent Displayed equations are centered and set on a separate
+line.
+\begin{equation}
+x + y = z
+\end{equation}
+Please try to avoid rasterized images for line-art diagrams and
+schemas. Whenever possible, use vector graphics instead (see
+Fig.~\ref{fig1}).
+
+\begin{figure}
+\includegraphics[width=\textwidth]{fig1.eps}
+\caption{A figure caption is always placed below the illustration.
+Please note that short captions are centered, while long ones are
+justified by the macro package automatically.} \label{fig1}
+\end{figure}
+
+\begin{theorem}
+This is a sample theorem. The run-in heading is set in bold, while
+the following text appears in italics. Definitions, lemmas,
+propositions, and corollaries are styled the same way.
+\end{theorem}
+%
+% the environments 'definition', 'lemma', 'proposition', 'corollary',
+% 'remark', and 'example' are defined in the LLNCS documentclass as well.
+%
+\begin{proof}
+Proofs, examples, and remarks have the initial word in italics,
+while the following text appears in normal font.
+\end{proof}
+For citations of references, we prefer the use of square brackets
+and consecutive numbers. Citations using labels or the author/year
+convention are also acceptable. The following bibliography provides
+a sample reference list with entries for journal
+articles~\cite{ref_article1}, an LNCS chapter~\cite{ref_lncs1}, a
+book~\cite{ref_book1}, proceedings without editors~\cite{ref_proc1},
+and a homepage~\cite{ref_url1}. Multiple citations are grouped
+\cite{ref_article1,ref_lncs1,ref_book1},
+\cite{ref_article1,ref_book1,ref_proc1,ref_url1}.
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+% \bibliographystyle{splncs04}
+% \bibliography{mybibliography}
+%
+\begin{thebibliography}{8}
+
+\bibitem{ref_paper1}
+N. Hoque, D. K. Bhattacharyya and J. K. Kalita, "Botnet in DDoS Attacks: Trends and Challenges," 
+in IEEE Communications Surveys \& Tutorials, vol. 17, no. 4, pp. 2242-2270, Fourthquarter 2015, 
+doi: 10.1109/COMST.2015.2457491.
+
+%\bibitem{ref_paper2}
+%Vu, N.H. DDoS attack detection using K-Nearest Neighbor classifier method. In Proceedings of the International Conference on
+%Telehealth/Assistive Technologies, Baltimore, Maryland, USA, 16--18 April 2008; IEEE: Piscataway Township, NJ, USA, 2008; pp. 248--253.
+
+\bibitem{ref_paper3}
+Muhammad Aamir, Syed Mustafa Ali Zaidi,
+Clustering based semi-supervised machine learning for DDoS attack classification,
+Journal of King Saud University - Computer and Information Sciences,
+Volume 33, Issue 4,
+2021,
+Pages 436-446,
+ISSN 1319-1578,
+https://doi.org/10.1016/j.jksuci.2019.02.003.
+\url{https://www.sciencedirect.com/science/article/pii/S131915781831067X}
+
+\bibitem{ref_paper4}
+Behal, Sunny \& Arora, Ritika. (2010). IP Spoofing.
+
+\bibitem{ref_paper5}
+Bing Xue and Mengjie Zhang. 2017. Evolutionary feature manipulation in data mining/big data. SIGEVOlution 10, 1 (March 2017), 4–11. \url{https://doi.org/10.1145/3089251.3089252}
+
+\bibitem{ref_paper6}
+Ahsan, M. M., Mahmud, M. A. P., Saha, P. K., Gupta, K. D., \& Siddique, Z. (2021). Effect of Data Scaling Methods on Machine Learning Algorithms and Model Performance. Technologies, 9(3). \url{https://doi.org/10.3390/technologies9030052}
+
+\bibitem{ref_paper7}
+Wernogtiug A. Bhandari, "Feature Scaling | Standardization Vs Normalization", Analytics Vidhya, 2020, [online] Available: \url{https://www.analyticsvidhya.eom/blog/2020/04/feature-scaling-machine-learning-normalization-standardization/}
+
+\bibitem{ref_paper8}
+Pargent, F., Pfisterer, F., Thomas, J. et al. Regularized target encoding outperforms traditional methods in supervised machine learning with high cardinality features. Comput Stat 37, 2671–2692 (2022). \url{https://doi.org/10.1007/s00180-022-01207-6}
+
+\bibitem{ref_paper9}
+B. Bhattacharya, D.P. Solomatine, Machine learning in sedimentation modelling, Neural Networks, Volume 19, Issue 2, 2006, Pages 208-214, ISSN 0893-6080, \url{https://doi.org/10.1016/j.neunet.2006.01.007.}
+
+\bibitem{paper_rfc}
+Salam, Mustafa Abdul, et al. "The effect of different dimensionality reduction techniques on machine learning overfitting problem." Int. J. Adv. Comput. Sci. Appl 12.4 (2021): 641-655.
+
+\bibitem{paper_feature_selection}
+A. Jović, K. Brkić and N. Bogunović, "A review of feature selection methods with applications," 2015 38th International Convention on Information and Communication Technology, Electronics and Microelectronics (MIPRO), Opatija, Croatia, 2015, pp. 1200-1205, doi: 10.1109/MIPRO.2015.7160458.
+
+\bibitem{ref_url1}
+Genie-Networks. DDoS Attack Statistics and Trends Report for 2020. 2021, \url{https://blog.cloudflare.com/ddos-threat-report-2022-q4/}.
+
+\bibitem{dataset}
+I. Sharafaldin, A. H. Lashkari, S. Hakak and A. A. Ghorbani, "Developing Realistic Distributed Denial of Service (DDoS) Attack Dataset and Taxonomy," 2019 International Carnahan Conference on Security Technology (ICCST), Chennai, India, 2019, pp. 1-8, doi: 10.1109/CCST.2019.8888419.
+
+\bibitem{ref_article1}
+Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+
+\bibitem{book1}
+Siddharth Misra, Aditya Chakravarty, Pritesh Bhoumick, Chandra S. Rai,
+Chapter 2 - Unsupervised clustering methods for noninvasive characterization of fracture-induced geomechanical alterations,
+Editor(s): Siddharth Misra, Hao Li, Jiabo He,
+Machine Learning for Subsurface Characterization,
+2020, Pages 39--64, \url{https://doi.org/10.1016/B978-0-12-817736-5.00006-5}
+
+
+\end{thebibliography}
+\end{document}
