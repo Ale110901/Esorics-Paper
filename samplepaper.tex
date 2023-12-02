@@ -1,6 +1,8 @@
 \documentclass[runningheads]{llncs}
 
 \usepackage{graphicx}
+\usepackage{changepage}
+
 % Used for displaying a sample figure. If possible, figure files should
 % be included in EPS format.
 %
@@ -126,7 +128,7 @@ The following types of attacks are present: UDP, MSSQL, Portmap, Syn, NetBIOS, U
     \label{fig2}
 \end{figure}
 
-\subsubsection{Data manipulation}
+\subsubsection{Feature pre-processing}
 The efficiency of classification techniques can be improved through adequate data manipulation which concerns different types of actions. Additionally, models trained on manually
 prepared data exhibited better performance compared to those trained on non-prepared data according to \cite{ref_paper5}.
 
@@ -138,7 +140,9 @@ Feature scaling technique exists in two forms; normalization and standardization
 \begin{equation}
 \frac{x_i - min(x)}{max(x) - min(x)}
 \end{equation}
+Where $x_{i}$ represents the values of the current feature, while $x$ the current feature.
 \\
+
 \paragraph{Encoding}
 Many statistical learning algorithms require as input a numerical feature matrix, as the case of GMM. When categorical variables are present in the data, feature engineering is needed to encode the different categories into a suitable feature vector.\\
 Feature encoding is the process of transforming textual data into numerical values so they may be applied to ML algorithms, resulting in improved model accuracy. Researchers have used many approaches to convert textual data into numerical values such as, “Label Encoding”, “One Hot Encoding” and “Binary Encoding” \cite{ref_paper8}, while categorical variables with only a small number of possible levels can often be efficiently dealt with using standard techniques such as one-hot encoding, this approach becomes inefficient as the number of levels increases, in such work this process is applied to the target feature of the dataset in which there are two different levels, \textit{Attack} and \textit{Benign}, even if the number of levels is not high, it was decided to not use the One-Hot encoding technique because it goes to encrease the number of the feature by 2, instead of One-Hot encoding technique it was used the Label encoding, which simply converts each value in a textual column into a number. Label encoding has the advantage that it is straightforward, yet it has the disadvantage that the numeric values can be “misinterpreted” by the machine learning algorithms since it uses number sequencing. The problem using the number is that they introduce relation/comparison between them. Apparently, there is no relation between Attack and Benign, but when looking at the number, 'Benign' which is encoded using 1 has higher precedence over ‘Attack’ which is encoded using 0, this kind of problem in this work does not occur.
@@ -147,41 +151,70 @@ Feature encoding is the process of transforming textual data into numerical valu
 Many ML models experience difficulty working with a high presence of features in input, generally, features can be categorized as: relevant, irrelevant, or redundant, the last two categories only increase the size of the input space \cite{ref_paper9} resulting in difficulty to process data further thus not contributing to the learning process. To generate the best performing model, feature selection plays a major role, which process a subset from available features data are selected for the process of learning algorithm. The best subset is the one with least number of dimensions that most contribute to learning accuracy, since an irrelevant feature does not affect describing the target concept in any way, a redundant feature does not add anything new to describing the target concept. Redundant features might possibly add more noise than useful information in describing the concept of interest. The main benefits of feature selection are follows: (i) reducing the measurement cost and storage requirements, (ii) coping with the degradation of the classification performance due to the finiteness of training sample sets, (iii) reducing training and utilization time, (iv) facilitating data visualization and data understanding, (V) reducing the risk of \textit{overfitting}.\\
 This process can be carried out into three ways \cite{paper_feature_selection}: filter, wrapper, and embedded.\\The feature selection process of the proposed work uses a filter approach based on the Random Forest Classifier (RFC) as in according with \cite{paper_rfc}, since it shows the most suitable performance among other filtering approaches, before the application of the model, the dataset is divided into train and test sets in the ratio of 80:20, since feature selection using only the training data (train set) rather than the entire dataset. This is particularly important to avoid so-called "data leakage".
 The main reason behind this choice is that, when selecting features, you want the selection to be based only on the information available during the model training phase. If you also use data from the test set during the feature selection phase, you may run the risk of using future information to guide feature selection, introducing a bias into the results.\\
-The RFC split the predictor space, i.e., the target variable into different sub groups which are relatively more homogenous from the perspective of the target variable. It creates the small subsets of datasets (bootstrap) from the overall dataset, along with numerous decision trees based on each sample. The first phase begins with learning data, after selecting one dimension between all, is defined a threshold values arbitrarily within the min–max range, this is used to divide the data and calculate the impurity based on the data being distributed. There are several ways to calculate the impurity, in this work the information is used.\\
-Information gain is a criterion for assessing the quality of a split, it calculates the amount of entropy (uncertainty) that is reduced as a result of dividing the data by a specific property. The entropy of a subset S is determined as follows:
+The RFC takes the training dataset and resample it according to a procedure called “bootstrap”. Each sample contains a random subset of the original columns and is used to fit a decision tree. 
+Each tree of the random forest can calculate the importance of a feature according to its ability to increase the pureness of the leaves. 
+The higher the increment in leaves purity, the higher the importance of the feature. This is done for each tree, then is averaged among all the trees and, finally, normalized to 1. 
+So, the sum of the importance scores calculated by a Random Forest is 1.\\
+In this paper Information Gain (IG) criteria is used for feature selection by RFC. To use Information Gain for feature selection an entropy value of each attribute of the data has to be calculated. 
+The entropy value is used for ranking features that affect data classification. A feature which does not have much effect on the data classification has very small information gain and it can be 
+ignored without affecting the detection accuracy of a classifier \cite{paper_ig}.It calculates the amount of entropy (uncertainty) that is reduced as a result of dividing the data by a specific property.
+Hence for each splitting attribute, information gain is calculated and the attribute with highest gain is chosen as splitting attribute. 
+This attribute is such that it creates minimum impurity or randomness in the generated splits and hence it minimizes the information needed to classify the tuples.
+The entropy of a subset S is determined as follows:
 \begin{equation}
 Entropy(S) = \sum_{c=1}^{C} (p_i \cdot log_2(p_i))
 \end{equation}
 
-Where C represents the different classes of S, p is the likelihood of each class of S.\\
-The difference between the entropy of the parent set S and the weighted average entropy of its child subsets following the split is used to calculate the information gain for a particular attribute.
+Here c = 1, .., C are the different classes in S, $p_i$ is probability that an arbitrary tuple in S belongs to class $C_i$.\\
+Let A be a feature in S and ${a_1, a_2,…, a_v}$ are different values of attribute A in S such that ${S_1, …, S_v}$ are partitions generated based on these values. 
+These partitions are likely to be impure. How much more information is still needed to arrive at an exact classification or pure partition is given as:
+\begin{equation}
+    Entropy_A(S) = \sum_{i=1}^{v} (\frac{|S_i|}{|S|} \cdot Entropy(S_i))
+\end{equation}
+The smaller is this additional information the greater the purity of the partition.
+\begin{equation}
+    IG(A) = Entropy(S) - Entropy_A(S)
+\end{equation}
 
-Entropy(S) - weighted average of kid entropies equals information gain.
+Once the IG relating to all the features of the dataset has been defined via RFC, the Select From Model class is applied to the results for the selection of the main important features by defining
+a threshold based on the average of the values coming from the RFC. Then, the features that have the IG above the threshold are selected, which are shown in Figure \ref{fig3}.
 
-The optimal property for data splitting is chosen to have the most information gain.
+\begin{figure}[h]
+    \begin{adjustwidth}{-0.5in}{0in}
+        \includegraphics[scale=0.38]{Figures/feature_selected.eps}
+        \caption{Selected features.}
+        \label{fig3}
+    \end{adjustwidth}
+\end{figure}
 
+\subsubsection{Dimensionality reduction}
+The dataset, after having gone through a pre-processing and feature selection phases, still has a high dimensionality with the presence of 28 features. In this regard, a reduction of the latter is necessary, as we want to have a representation of the data. Dimensionality reduction has been made using Principal Component Analysis (PCA) \cite{paper_pca}.\\
+Principal component analysis (PCA) simplifies the complexity in high-dimensional data while retaining trends and patterns. It does this by transforming the data into fewer dimensions with minimal loss of overall dispersion, which act as summaries of features. PCA reduces data by geometrically projecting them onto lower dimensions called principal components (PCs) defined as a linear combination of the data\textquotesingle s original variables, with the goal of finding the best summary of the data using a limited number of PCs. The first PC is chosen to minimize the total distance between the data and their projection onto the PC. By minimizing this distance, we also maximize the variance of the projected points. The second (and subsequent) PCs are selected similarly, with the additional requirement that they be orthogonal (proving to be uncorrelated) with all previous PCs. Hence, principal components represent the directions of the data that explain a maximal amount of variance, or rather, the lines that capture most information of the data. The relationship between variance and information here, is that, the larger the variance carried by a line, the larger the dispersion of the data points along it, and the larger the dispersion along a line, the more information it has. Hence, PCs are new axes that provide the best angle to see and evaluate the data, so that the differences between the observations are better visible.\\
+Given the dealing of the PCs with distance, a fundamental step required in order to avoid falsification of measurements is data standardization, since heterogeneous data representations going to influence the PCs constructions, given that in case of small set of variables has a much larger magnitude than others, the components in the PCA analysis are heavily weighted along those variables, while other variables are ignored. As a consequence, the PCA simply recovers the values of these high-magnitude variables for this reason standardise the scale of features variation is essential, the consequence that this aspect can have is shown in Figure \ref{fig4} with a comparison on the first principal component whether features are standardized or not.
 
-Here, represents the i-th variant among the types of M variants, and is the
-probability at node T. The entropy has the lowest level of impurity when it has a value of zero,
-and the impurity has a minimum value when the probability has a value of one. The value of
-the gain is computed as shown in (6).
-A larger gain value indicates better classification. Next, the threshold value is stored, and
-the dimension at the root node is selected. The obtained gain value is divided at each node.
-Node splitting is repeated in the tree until the depth of the tree is maximized. In the resultant
-tree, the final node is called the leaf node. The number of trees is determined by the user. The
-dimensions and threshold are established at random; therefore, there is a small chance that the
-new tree could be in the same form as the existing tree. Inputs of small amounts of data will
-eventually reach the leaf node of each tree, and the probability value of the leaf node becomes
-the probability value of the tree. To obtain the learning process results, the RFC creates several
-trees, as previously mentioned, and aggregates their probabilities. This is a key idea of the
-RFC, and is called bagging (bootstrap aggregating). As previously explained, the RFC
-determines the overall classification accuracy after generating a large number of
-decision-making models. Because it has the ensemble step, the RFC can avoid over-fitting [9].
-On the other hand, the RFC has the disadvantage that a selected feature group can affect its
-classification accuracy
- 
+\clearpage
 
-\section{Model}
+\begin{figure}[h]
+    \begin{adjustwidth}{-0.7in}{0in}
+        \includegraphics[width=1.3\textwidth]{Figures/1st_component.eps}
+        \caption{Influence of the characteristics on the first principal component.}
+        \label{fig4}
+    \end{adjustwidth}
+\end{figure}
+
+The first application of PCA shown in Figure \ref{fig5} is performed by defining a number of 10 PCs to see and analyze how the cumulative variance is distributed over a larger number of components.
+Subsequently, 3 components were extracted from the results obtained, since with 3 components it is possible to visualize the data, reduce the computational power, finding only a data loss of 8\%.
+
+\begin{figure}[h]
+        \centering
+        \includegraphics[scale=0.46]{Figures/variance.eps}
+        \caption{Variance of 10 Pcs.}
+        \label{fig5}
+\end{figure}
+
+\clearpage
+
+\subsection{Model}
 \subsubsection{GMM}
 A GMM assumes all the data points are generated from a mixture of a finite number of Gaussian 
 distributions with certain parameters. GMM learns the representation of a multimodal data 
@@ -308,6 +341,12 @@ Salam, Mustafa Abdul, et al. "The effect of different dimensionality reduction t
 
 \bibitem{paper_feature_selection}
 A. Jović, K. Brkić and N. Bogunović, "A review of feature selection methods with applications," 2015 38th International Convention on Information and Communication Technology, Electronics and Microelectronics (MIPRO), Opatija, Croatia, 2015, pp. 1200-1205, doi: 10.1109/MIPRO.2015.7160458.
+
+\bibitem{paper_ig}
+Azhagusundari, B., and Antony Selvadoss Thanamani. "Feature selection based on information gain." International Journal of Innovative Technology and Exploring Engineering (IJITEE) 2.2 (2013): 18-21.
+
+\bibitem{paper_pca}
+Felipe L. Gewers, Gustavo R. Ferreira, Henrique F. De Arruda, Filipi N. Silva, Cesar H. Comin, Diego R. Amancio, and Luciano Da F. Costa. 2021. Principal Component Analysis: A Natural Approach to Data Exploration. ACM Comput. Surv. 54, 4, Article 70 (May 2022), 34 pages. \url{https://doi.org/10.1145/3447755}
 
 \bibitem{ref_url1}
 Genie-Networks. DDoS Attack Statistics and Trends Report for 2020. 2021, \url{https://blog.cloudflare.com/ddos-threat-report-2022-q4/}.
